@@ -40,7 +40,7 @@ def otimo(vetor):
     print(pageMiss)
     return pageMiss
 
-def nru(vetor): #esboço
+def nru(vetor): #esboço: dando o resultado errado não sei o pq
     pageMiss = 0 
     valores = []
     molduras = int(vetor[1]) #numero de molduras
@@ -122,6 +122,54 @@ def nru(vetor): #esboço
                         moldura[2] = 0  # reseta o bit R
     return print(pageMiss)
 
+def relogio(vetor):
+    pageMiss = 0 
+    valores = []
+    molduras = int(vetor[1]) #numero de molduras
+    matriz = [[-1, 0, 0] for _ in range(molduras)] #matriz com 4 colunas por padrão e as linhas são o número de molduras
+    clock = int(vetor[2]) #tempo em que o bit R vai zerar
+    ponteiro = 0
+
+    for i, linha in enumerate(vetor):
+        if (i > 2): #n-3
+            valores = linha.strip().split()
+            pagina = int(valores[0]) #0 
+            tempo = int(valores[1]) #0 -> tempo em que a página vai chegar
+
+            # verifica se a página ja esta na memoria (matriz)
+            pagina_na_memoria = False
+            for j, moldura in enumerate(matriz):
+                if (moldura[0] == pagina):
+                    pagina_na_memoria = True
+                    moldura[1] = tempo # seta o tempo da página acessada 
+                    moldura[2] = 1 # bit R=1 -> modificado
+                    break
+
+            if not pagina_na_memoria:
+                pageMiss +=1
+
+                substituida = False
+                while not substituida:
+                    if matriz[ponteiro][2] == 0: # assim identifico em qual linha o ponteiro está
+                        matriz[ponteiro][0] = pagina
+                        matriz[ponteiro][1] = tempo
+                        matriz[ponteiro][2] = 1 
+                        substituida = True
+                    else:
+                        # reseta o bit R e avança o ponteiro
+                        matriz[ponteiro][2] = 0
+                        ponteiro = (ponteiro + 1) % molduras  # avança o ponteiro circularmente -> o ponteiro + proximo indice / numero de molduras. O resto será entre  e 0 e o último número, assim fazendo com que o ponteiro avance circularmente
+
+                # avança o ponteiro usando o mesmo cálculo anterior
+                ponteiro = (ponteiro + 1) % molduras
+
+            # verifica o tempo de clock
+            if tempo % clock == 0:
+                for moldura in matriz:
+                    moldura[2] = 0  # reseta o bit R
+
+    return print(pageMiss)
+
 # função pra ler os txt
 def lerArquivos(nomeArquivo):
         with open(nomeArquivo, "r") as arquivo:
@@ -144,8 +192,8 @@ arquivo_saida = "RESULTADO-03.txt"
 
 # lendo os arquivos (principalmente para o OTIMO que tem de prever o que deve ser removido)
 linhas = lerArquivos(arquivo_entrada)
-pageMiss = nru(linhas)
-
+#pageMiss = nru(linhas)
 #pageMiss = otimo(linhas)
+pageMiss = relogio(linhas)
 
      
