@@ -40,45 +40,46 @@ def otimo(vetor):
     print(pageMiss)
     return pageMiss
 
-def nru(vetor): #esboço: dando o resultado errado não sei o pq
-    pageMiss = 0 
+def nru(vetor):
+    pageMiss = 0
     valores = []
-    molduras = int(vetor[1]) #numero de molduras
-    matriz = [[-1, 0, 0, 0] for _ in range(molduras)] #matriz com 4 colunas por padrão e as linhas são o número de molduras
-    clock = int(vetor[2]) #tempo em que o bit R vai zerar
+    molduras = int(vetor[1])  # número de molduras
+    matriz = [[-1, 0, 0, 0] for _ in range(molduras)]  # matriz com 4 colunas por padrão e as linhas são o número de molduras
+    clock = int(vetor[2])  # tempo em que o bit R vai zerar
 
     for i, linha in enumerate(vetor):
-        if (i > 2): #n-3
+        if i > 2:  # n-3
             valores = linha.strip().split()
-            pagina = int(valores[0]) #0 
-            tempo = int(valores[1]) #0 -> tempo em que a página vai chegar
+            pagina = int(valores[0])  # 0
+            tempo = int(valores[1])  # 0 -> tempo em que a página vai chegar
 
-            if (i == 3): # na primeira passagem preencho a primeira linha com o primeiro valor e contabilizo um pageMiss
+            if i == 3:  # na primeira passagem preencho a primeira linha com o primeiro valor e contabilizo um pageMiss
                 matriz[0][0] = pagina
                 matriz[0][1] = tempo
-                matriz[0][2] = 1 #bit R -> página acessada recentemente
-                matriz[0][3] = 0 #bit M -> página modificada
-                pageMiss +=1
+                matriz[0][2] = 1  # bit R -> página acessada recentemente
+                matriz[0][3] = 0  # bit M -> página modificada
+                pageMiss += 1
             else:
                 # verifica se a página já está na memória
                 pagina_na_memoria = False
                 for moldura in matriz:
                     # se a página tiver na memória, atualiza somente o tempo de clock e o bit M para modificado
-                    if (moldura[0] == pagina):
+                    if moldura[0] == pagina:
                         pagina_na_memoria = True
                         moldura[1] = tempo  # atualiza o tempo de acesso
-                        moldura[2] = 1      # seta o bit R (página acessada)
-                        moldura[3] = 1 # seta o bit M para 1 (página modificada)
+                        moldura[2] = 1  # seta o bit R (página acessada)
+                        moldura[3] = 1  # seta o bit M para 1 (página modificada)
+                        break
 
                 if not pagina_na_memoria:
-                # se a página não está na memória incrementa o pageMiss 
+                    # se a página não está na memória incrementa o pageMiss
                     pageMiss += 1
 
-                # procura um caso de classe 1: bit R=0 e bit M=0
+                    # procura um caso de classe 1: bit R=0 e bit M=0
                     substituida = False
                     for moldura in matriz:
-                        if (moldura[2] == 0 and moldura[3] == 0):
-                        # substituição de página e alteração dos demais campos (tempo, bit R e bit M)
+                        if moldura[2] == 0 and moldura[3] == 0:
+                            # substituição de página e alteração dos demais campos (tempo, bit R e bit M)
                             moldura[0] = pagina
                             moldura[1] = tempo
                             moldura[2] = 1
@@ -89,37 +90,41 @@ def nru(vetor): #esboço: dando o resultado errado não sei o pq
                     # procura um caso classe 2: bit R=0 e bit M=1
                     if not substituida:
                         for moldura in matriz:
-                            if (moldura[2] == 0 and moldura[3] == 1):
+                            if moldura[2] == 0 and moldura[3] == 1:
                                 moldura[0] = pagina
                                 moldura[1] = tempo
                                 moldura[2] = 1  # seta o bit R para mais acessado recentemente
-                                moldura[3] = 0 #modificado volta para 0
+                                moldura[3] = 0  # modificado volta para 0
                                 substituida = True
                                 break
-                    
+
                     # procura um caso classe 3: bit R=1 e bit M=0
                     if not substituida:
                         for moldura in matriz:
-                            if(moldura[2] == 1 and moldura[3] == 0):
+                            if moldura[2] == 1 and moldura[3] == 0:
                                 moldura[0] = pagina
                                 moldura[1] = tempo
-                                moldura[3] = 1
+                                moldura[2] = 1
+                                moldura[3] = 0
                                 substituida = True
                                 break
-        
-                    # procura um caso class 4: bti R=1 e bit M=1
+
+                    # procura um caso classe 4: bit R=1 e bit M=1
                     if not substituida:
                         for moldura in matriz:
-                            if(moldura[2] == 1 and moldura[3] == 1):
+                            if moldura[2] == 1 and moldura[3] == 1:
                                 moldura[0] = pagina
                                 moldura[1] = tempo
+                                moldura[2] = 1
+                                moldura[3] = 0
                                 substituida = True
-                                break 
-                    
+                                break
+
             # tempo de ciclo
-                if tempo % clock == 0:
-                    for moldura in matriz:
-                        moldura[2] = 0  # reseta o bit R
+            if tempo % clock == 0:
+                for moldura in matriz:
+                    moldura[2] = 0  # reseta o bit R
+
     return print(pageMiss)
 
 def relogio(vetor):
@@ -170,6 +175,112 @@ def relogio(vetor):
 
     return print(pageMiss)
 
+class No:
+    """Classe para representar um nó da lista encadeada circular."""
+    def __init__(self, pagina):
+        self.pagina = pagina
+        self.referencia = 1  # Bit R = 1 quando a página entra na memória
+        self.tempo = 0
+        self.proximo = None  # Ponteiro para o próximo nó
+
+
+class ListaCircularRelogio:
+    """Lista encadeada circular para o algoritmo do Relógio."""
+    def __init__(self, tamanho):
+        self.tamanho = tamanho
+        self.cabeca = None
+        self.ponteiro = None  # Indica a posição do ponteiro do relógio
+        self.elementos = 0  # Contador de elementos na lista
+
+    def inserir(self, pagina, tempo):
+        """Insere uma nova página na lista (substituindo se necessário)."""
+        novo_no = No(pagina)
+        novo_no.tempo = tempo
+
+        if self.elementos < self.tamanho:
+            # Ainda há espaço na memória, não precisa substituir
+            if not self.cabeca:
+                # Primeira inserção
+                self.cabeca = novo_no
+                self.ponteiro = novo_no
+                novo_no.proximo = novo_no  # Aponta para ele mesmo (circular)
+            else:
+                # Insere no final da lista circular
+                temp = self.cabeca
+                while temp.proximo != self.cabeca:
+                    temp = temp.proximo
+                temp.proximo = novo_no
+                novo_no.proximo = self.cabeca  # Fecha a lista circular
+
+            self.elementos += 1
+        else:
+            # Memória cheia -> Aplicar substituição pelo Relógio
+            self.substituir(novo_no)
+
+    def substituir(self, novo_no):
+        """Substitui uma página na memória usando a política do Relógio."""
+        while True:
+            if self.ponteiro.referencia == 0:
+                # Encontramos uma página para substituição
+                self.ponteiro.pagina = novo_no.pagina
+                self.ponteiro.tempo = novo_no.tempo
+                self.ponteiro.referencia = 1  # Página recém-inserida tem referência 1
+                self.ponteiro = self.ponteiro.proximo  # Avança o ponteiro
+                break
+            else:
+                # Se o bit R for 1, zere-o e avance o ponteiro
+                self.ponteiro.referencia = 0
+                self.ponteiro = self.ponteiro.proximo
+
+    def atualizar_referencia(self, pagina):
+        """Atualiza o bit de referência de uma página se ela for acessada."""
+        temp = self.cabeca
+        if not temp:
+            return False
+        
+        for _ in range(self.tamanho):  # Percorre todas as molduras
+            if temp.pagina == pagina:
+                temp.referencia = 1  # Página foi acessada, então referência = 1
+                return True
+            temp = temp.proximo
+        return False
+
+    def reset_referencia(self):
+        """Reseta todos os bits de referência na lista circular."""
+        temp = self.cabeca
+        if not temp:
+            return
+        
+        for _ in range(self.tamanho):
+            temp.referencia = 0
+            temp = temp.proximo
+
+
+def relogioSEC(vetor):
+    """Função principal do algoritmo do Relógio."""
+    pageMiss = 0
+    molduras = int(vetor[1])  # Número de molduras na memória
+    clock = int(vetor[2])  # Tempo de reset do bit R
+    memoria = ListaCircularRelogio(molduras)  # Estrutura do relógio
+
+    for i, linha in enumerate(vetor):
+        if i > 2:  # Ignorar os três primeiros valores de entrada
+            valores = linha.strip().split()
+            pagina = int(valores[0])
+            tempo = int(valores[1])
+
+            # Verifica se a página já está na memória
+            if not memoria.atualizar_referencia(pagina):
+                pageMiss += 1
+                memoria.inserir(pagina, tempo)
+
+            # Reseta os bits R no tempo de clock
+            if tempo % clock == 0:
+                memoria.reset_referencia()
+
+    print(pageMiss)
+
+
 # função pra ler os txt
 def lerArquivos(nomeArquivo):
         with open(nomeArquivo, "r") as arquivo:
@@ -187,13 +298,13 @@ def escreverArquivos(vetor, nomeArquivo):
 
 
 # testando os arquivos
-arquivo_entrada = "TESTE-03.txt"
+arquivo_entrada = "TESTE-02.txt"
 arquivo_saida = "RESULTADO-03.txt"
 
 # lendo os arquivos (principalmente para o OTIMO que tem de prever o que deve ser removido)
 linhas = lerArquivos(arquivo_entrada)
 #pageMiss = nru(linhas)
 #pageMiss = otimo(linhas)
-pageMiss = relogio(linhas)
+pageMiss = relogioSEC(linhas)
 
      
